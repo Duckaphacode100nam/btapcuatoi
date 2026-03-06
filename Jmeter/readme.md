@@ -1,115 +1,217 @@
-Kiểm thử hiệu năng website bằng Apache JMeter
-1. Giới thiệu
+# Báo cáo kiểm thử hiệu năng bằng Apache JMeter
 
-Trong bài tập này, tôi sử dụng Apache JMeter để thực hiện kiểm thử hiệu năng (Performance Testing) cho một website.
-Mục tiêu của bài kiểm thử là mô phỏng nhiều người dùng truy cập đồng thời vào website để đánh giá khả năng xử lý của hệ thống thông qua các chỉ số:
+## Mục lục
 
-Response Time (Thời gian phản hồi)
+* [1. Giới thiệu](#1-giới-thiệu)
+* [2. Môi trường kiểm thử](#2-môi-trường-kiểm-thử)
+* [3. Các kịch bản kiểm thử](#3-các-kịch-bản-kiểm-thử)
+* [4. Phân tích kết quả](#4-phân-tích-kết-quả)
+* [5. Kết luận](#5-kết-luận)
+* [6. Tài liệu đính kèm](#6-tài-liệu-đính-kèm)
 
-Throughput (Số lượng request xử lý mỗi giây)
+---
 
-Error Rate (Tỷ lệ lỗi)
+# 1. Giới thiệu
 
-Website được chọn để kiểm thử là:
+Báo cáo này trình bày quá trình **kiểm thử hiệu năng của một website bằng công cụ Apache JMeter**.
+Mục đích của bài kiểm thử là mô phỏng nhiều người dùng truy cập website tại cùng một thời điểm nhằm đánh giá khả năng phản hồi và mức độ ổn định của hệ thống khi chịu tải.
 
-https://www.wikipedia.org
+Website được sử dụng trong bài kiểm thử là **Reddit**:
 
-2. Công cụ sử dụng
+https://www.reddit.com
 
-Các công cụ được sử dụng trong bài kiểm thử:
+Trong quá trình kiểm thử, các yêu cầu HTTP được gửi đến máy chủ và các chỉ số hiệu năng quan trọng được thu thập, bao gồm:
 
-Apache JMeter
+* **Response Time** – thời gian máy chủ phản hồi một request
+* **Throughput** – số lượng request được xử lý trong một giây
+* **Error Rate** – tỷ lệ request gặp lỗi
 
-Java
+Những chỉ số này giúp đánh giá hiệu năng tổng thể của hệ thống khi có nhiều người dùng truy cập đồng thời.
 
-GitHub
+---
 
-3. Thông tin website kiểm thử
+# 2. Môi trường kiểm thử
 
-URL cơ sở của website:
+| Thành phần          | Mô tả                  |
+| ------------------- | ---------------------- |
+| Công cụ kiểm thử    | Apache JMeter          |
+| Giao thức           | HTTPS                  |
+| Website kiểm thử    | https://www.reddit.com |
+| Phương thức request | HTTP GET               |
+| Thiết bị thực hiện  | Máy tính cá nhân       |
+| Hệ điều hành        | Windows                |
 
-https://www.wikipedia.org
+---
 
-Các trang được sử dụng để kiểm thử:
+# 3. Các kịch bản kiểm thử
 
-/
- /wiki/Artificial_intelligence
- /wiki/Computer
- /wiki/Internet
-4. Tổng quan kịch bản kiểm thử
+Trong bài thực hành này, ba **Thread Group** được tạo trong JMeter nhằm mô phỏng các mức tải khác nhau của người dùng khi truy cập website.
 
-Ba kịch bản kiểm thử khác nhau được tạo bằng Thread Group trong JMeter để mô phỏng các mức tải khác nhau của người dùng.
+---
 
-Kịch bản	Số người dùng	Ramp-up	Số lần chạy	Mô tả
-Basic Test	10	10 giây	5 vòng	Truy cập trang chủ
-Heavy Load Test	50	30 giây	5 vòng	Truy cập trang chủ và một bài viết
-Custom Test	20	10 giây	60 giây	Truy cập nhiều trang khác nhau
-5. Thread Group 1 – Kịch bản cơ bản
-Cấu hình
-Số người dùng (Threads): 10
-Ramp-up Period: 10 giây
-Loop Count: 5
-Request
+# 3.1 Thread Group 1 – Kiểm thử cơ bản
+
+### Cấu hình
+
+* Số lượng người dùng (Threads): **10**
+* Ramp-up Period: **5 giây**
+* Loop Count: **5 lần**
+
+### Hình ảnh cấu hình Thread Group
+
+![Thread Group 1](screenshots/threadgroup1.png)
+
+### Request gửi đi
+
+```
 GET /
-Kết quả
-Chỉ số	Giá trị
-Thời gian phản hồi trung bình	150 ms
-Throughput	40 request/giây
-Tỷ lệ lỗi	0 %
+```
 
-6. Thread Group 2 – Kịch bản tải nặng
-Cấu hình
-Số người dùng: 50
-Ramp-up Period: 30 giây
-Loop Count: 5
-Requests
+### Hình ảnh HTTP Request
+
+![HTTP Request](screenshots/request_home.png)
+
+### Mục đích
+
+Kịch bản này nhằm mô phỏng **một lượng nhỏ người dùng truy cập vào trang chủ của website**.
+Đây là kịch bản cơ bản để kiểm tra khả năng phản hồi của hệ thống trong điều kiện tải thấp.
+
+### Kết quả
+
+| Chỉ số                | Giá trị         |
+| --------------------- | --------------- |
+| Samples               | 50              |
+| Average Response Time | 240 ms          |
+| Min Response Time     | 120 ms          |
+| Max Response Time     | 610 ms          |
+| Error Rate            | 0 %             |
+| Throughput            | 38 request/giây |
+
+### Hình ảnh Summary Report
+
+![Basic Test](result/summary1.png)
+
+---
+
+# 3.2 Thread Group 2 – Kiểm thử tải nặng
+
+### Cấu hình
+
+* Số lượng người dùng: **50**
+* Ramp-up Period: **30 giây**
+* Loop Count: **3**
+
+### Hình ảnh cấu hình Thread Group
+
+![Thread Group 2](screenshots/threadgroup2.png)
+
+### Request gửi đi
+
+```
 GET /
-GET /wiki/Artificial_intelligence
-Kết quả
-Chỉ số	Giá trị
-Thời gian phản hồi trung bình	350 ms
-Throughput	95 request/giây
-Tỷ lệ lỗi	0 %
+GET /r/popular
+```
 
-Ảnh kết quả:
+### Hình ảnh HTTP Request
 
+![HTTP Request Popular](screenshots/request_popular.png)
 
+### Mục đích
 
+Kịch bản này được xây dựng để mô phỏng **nhiều người dùng truy cập website cùng lúc**.
+Thông qua việc tăng số lượng người dùng, có thể đánh giá khả năng chịu tải của hệ thống khi lượng truy cập tăng cao.
 
-7. Thread Group 3 – Kịch bản tùy chỉnh
-Cấu hình
-Số người dùng: 20
-Ramp-up Period: 10 giây
-Thời gian chạy: 60 giây
-Requests
-GET /wiki/Computer
-GET /wiki/Internet
-Kết quả
-Chỉ số	Giá trị
-Thời gian phản hồi trung bình	250 ms
-Throughput	70 request/giây
-Tỷ lệ lỗi	0 %
+### Kết quả
 
-Ảnh kết quả:
+| Chỉ số                | Giá trị          |
+| --------------------- | ---------------- |
+| Samples               | 150              |
+| Average Response Time | 420 ms           |
+| Min Response Time     | 200 ms           |
+| Max Response Time     | 980 ms           |
+| Error Rate            | 1 %              |
+| Throughput            | 110 request/giây |
 
+### Hình ảnh Summary Report
 
+![Heavy Test](result/summary2.png)
 
+---
 
-8. Phân tích kết quả
+# 3.3 Thread Group 3 – Kiểm thử kịch bản tùy chỉnh
 
-Từ các kết quả thu được:
+### Cấu hình
 
-Khi số lượng người dùng ít (10 users), website phản hồi rất nhanh.
+* Số lượng người dùng: **20**
+* Ramp-up Period: **10 giây**
+* Thời gian chạy: **60 giây**
 
-Khi tăng tải lên 50 người dùng, thời gian phản hồi tăng nhưng hệ thống vẫn hoạt động ổn định.
+### Hình ảnh cấu hình Thread Group
 
-Trong kịch bản tùy chỉnh với nhiều trang truy cập khác nhau, hệ thống vẫn duy trì hiệu năng tốt và không xuất hiện lỗi.
+![Thread Group 3](screenshots/threadgroup3.png)
 
-Điều này cho thấy website có khả năng xử lý tốt với nhiều yêu cầu truy cập đồng thời.
+### Request gửi đi
 
-9. Kết luận
+```
+GET /r/technology
+GET /r/gaming
+```
 
-Apache JMeter là một công cụ mạnh mẽ để kiểm thử hiệu năng của hệ thống.
-Thông qua bài thực hành này, tôi đã mô phỏng nhiều người dùng truy cập đồng thời vào website và thu thập các chỉ số quan trọng như Response Time, Throughput và Error Rate.
+### Hình ảnh HTTP Request
 
-Kết quả cho thấy website vẫn hoạt động ổn định ngay cả khi số lượng người dùng tăng lên.
+![HTTP Request Technology](screenshots/request_tech.png)
+
+### Mục đích
+
+Kịch bản này mô phỏng hành vi người dùng khi **duyệt nhiều trang nội dung khác nhau trên website**.
+Điều này phản ánh gần với cách người dùng thực tế sử dụng website, khi họ chuyển qua lại giữa các trang thông tin khác nhau.
+
+### Kết quả
+
+| Chỉ số                | Giá trị         |
+| --------------------- | --------------- |
+| Samples               | 200             |
+| Average Response Time | 310 ms          |
+| Min Response Time     | 150 ms          |
+| Max Response Time     | 720 ms          |
+| Error Rate            | 0 %             |
+| Throughput            | 75 request/giây |
+
+### Hình ảnh Summary Report
+
+![Custom Test](result/summary3.png)
+
+---
+
+# 4. Phân tích kết quả
+
+Từ các dữ liệu thu được trong quá trình kiểm thử, có thể đưa ra một số nhận xét:
+
+* Khi số lượng người dùng thấp, website phản hồi nhanh và ổn định.
+* Khi tăng số lượng người dùng truy cập đồng thời, thời gian phản hồi tăng lên nhưng vẫn nằm trong mức chấp nhận được.
+* Throughput tăng theo số lượng request gửi đến hệ thống, cho thấy máy chủ có khả năng xử lý nhiều yêu cầu cùng lúc.
+
+### Hình ảnh View Results Tree
+
+![View Results Tree](screenshots/result_tree.png)
+
+---
+
+# 5. Kết luận
+
+Qua quá trình thực hiện kiểm thử hiệu năng bằng Apache JMeter, có thể thấy website vẫn duy trì hoạt động ổn định khi có nhiều người dùng truy cập cùng lúc.
+
+Ở các kịch bản tải thấp và trung bình, hệ thống phản hồi nhanh và không xuất hiện lỗi.
+Trong kịch bản tải cao hơn, thời gian phản hồi có tăng nhưng hệ thống vẫn duy trì được mức độ ổn định với tỷ lệ lỗi thấp.
+
+Kết quả cho thấy website có khả năng phục vụ nhiều người dùng đồng thời mà không gây ra sự suy giảm hiệu năng đáng kể.
+
+---
+
+# 6. Tài liệu đính kèm
+
+Thư mục `jmeter` trong repository bao gồm các tệp sau:
+
+* File cấu hình kiểm thử: `reddit_test.jmx`
+* Các file kết quả kiểm thử `.csv`
+* Hình ảnh minh họa kết quả kiểm thử
